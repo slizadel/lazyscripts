@@ -2,11 +2,11 @@
 
 # Export LazyScript environment variables
 export LZS_VERSION=007
-export LZS_PREFIX="$PWD"
+export LZS_PREFIX="/root/.lazyscripts/tools"
 export LZS_APP="$LZS_PREFIX/ls-functions.sh"
 export LZS_URLPREFIX="git://github.com/hhoover/lazyscripts.git"
 export LZS_GETURL="$LZS_URLPREFIX/ls-init.sh"
-export LZS_MOD_PATH="modules/"
+export LZS_MOD_PATH="${LZS_PREFIX}/modules/"
 
 function isFunction() {
 	declare -F $1 &> /dev/null
