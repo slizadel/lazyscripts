@@ -95,8 +95,7 @@ function apcheck() {
                 apt-get -y install perl
             fi
         fi
-	# Just use lz for this?
-        /usr/bin/perl $LZS_PREFIX/${LZS_MOD_PATH}apachebuddy.pl
+        execute apachebuddy
 }
 
 # apdocs - Find Apache DocumentRoots
@@ -413,7 +412,8 @@ function login() {
 # Handler function which decides whether to execute a function or file
 function execute()
 {
-	local FILE=$(ls ${LZS_MOD_PATH}${1}.* 2> /dev/null | head -1)	# Find files matching the parameter, limit 1
+	# Find files matching the parameter, limit 1
+	local FILE=$(ls ${LZS_MOD_PATH}${1}.* 2> /dev/null | head -1)
 
 	# Try to execute the argument, either by function or module
 	if ( isFunction $1 ); then

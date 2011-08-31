@@ -20,7 +20,6 @@ function lz() {
 			${1}
 		else
 			$LZS_APP ${1}
-			#./ls-functions.sh ${1}
 		fi
 	else
 		lz help
