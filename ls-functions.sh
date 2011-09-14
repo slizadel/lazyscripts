@@ -95,7 +95,7 @@ function apcheck() {
                 apt-get -y install perl
             fi
         fi
-        execute apachebuddy
+        lz apachebuddy
 }
 
 # apdocs - Find Apache DocumentRoots
@@ -257,7 +257,7 @@ function info() {
 	echo -e "----- Memory Information -----"
 	free -m
 	echo -e "----- Network Interfaces -----"
-	execute ip
+	lz ip
 	echo -e "----- Uptime / Who is Online -----"
 	uptime ; who
 }
@@ -331,7 +331,7 @@ if [ -e /root/.my.cnf ]; then
 function mytuner() {
 	# Install binary calculator dependency
 	install_bc
-	execute tuning-primer
+	lz tuning-primer
 }
 
 # myusers - List MySQL users
@@ -402,28 +402,19 @@ function login() {
 	clear
 	colors
 	info
-	execute histsetup
+	lz histsetup
 	cpchk
 	# Print the MOTD
 	cat /etc/motd 2> /dev/null
 	echo -e "LazyScripts Project Page - https://github.com/hhoover/lazyscripts"
 }
 
-# Handler function which decides whether to execute a function or file
-function execute()
-{
-	# Find files matching the parameter, limit 1
-	local FILE=$(ls ${LZS_MOD_PATH}${1}.* 2> /dev/null | head -1)
+# Main execution thread
+if ( isFunction $1 ); then
+        $1
+else
+        echo "Sub-command '${1}' not found."
+        exit 1
+fi
 
-	# Try to execute the argument, either by function or module
-	if ( isFunction $1 ); then
-		$1
-	elif [ -r "${FILE}" ]; then
-		chmod +x ${FILE} && ${FILE}
-	else
-		echo "Sub-command '${1}' not found."
-		exit 1
-	fi
-}
 
-execute $1

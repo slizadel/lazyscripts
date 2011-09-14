@@ -1,8 +1,19 @@
 #!/bin/bash
+# LazyScripts Initializer Script
+# https://github.com/hhoover/lazyscripts/
+#
+# Usage: dot (`. ls-init.sh`) or source this file (`source ls-init.sh`)
+#        to load into your current shell
+#
+
+########################################################################
+#   Functions which export a value to the shell must be in this file   #        
+########################################################################
 
 # Export LazyScript environment variables
 export LZS_VERSION=007
-export LZS_PREFIX="/root/.lazyscripts/tools"
+# One-liner to get the script path, even if sourced
+export LZS_PREFIX=$(dirname $(readlink -f $BASH_SOURCE))
 export LZS_APP="$LZS_PREFIX/ls-functions.sh"
 export LZS_URLPREFIX="git://github.com/hhoover/lazyscripts.git"
 export LZS_GETURL="$LZS_URLPREFIX/ls-init.sh"
@@ -15,15 +26,23 @@ function isFunction() {
 
 # lz - Main function
 function lz() {
-	if [ $# -eq 1 ]; then
-		if ( isFunction ${1} ); then
-			${1}
-		else
-			$LZS_APP ${1}
-		fi
-	else
-		lz help
-	fi
+        # Find files matching the parameter, limit 1
+        local FILE=$(ls ${LZS_MOD_PATH}${1}.* 2> /dev/null | head -1)
+
+        if [ $# -eq 1 ]; then
+                if ( isFunction ${1} ); then
+                        # Run the function
+                        ${1}
+                elif [ -r "${FILE}" ]; then
+                        # Execute the module
+                        chmod +x ${FILE} && ( ${FILE} )
+                else   
+                        # Try to run from ls-functions.sh
+                        ( $LZS_APP ${1} )
+                fi
+        else   
+                lz help
+        fi
 }
 
 # bwprompt - A more simply b&w compatible shell prompt
@@ -78,3 +97,5 @@ function lslogin {
 # Run these functions when loaded
 ostype
 colorprompt
+# Export lz to subshells
+export -f lz
