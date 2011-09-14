@@ -135,10 +135,10 @@ find / -type f -printf "%s %h/%f\n" | sort -rn -k1 | head -n 50 | awk '{ print $
 function cloudkick() {
 if [[ $distro = "Redhat/CentOS" ]]; then
         cat > /etc/yum.repos.d/cloudkick.repo << EOF
-        [cloudkick]
-        name=Cloudkick
-        baseurl=http://packages.cloudkick.com/redhat/x86_64
-        gpgcheck=0
+[cloudkick]
+name=Cloudkick
+baseurl=http://packages.cloudkick.com/redhat/x86_64
+gpgcheck=0
 EOF
         yum -y -q install cloudkick-agent
         chkconfig cloudkick-agent on
@@ -358,31 +358,31 @@ if [[ $1 != "" ]]; then
 fi
         if [[ $distro = "Redhat/CentOS" ]]; then
                 cat > /etc/httpd/vhost.d/$domain.conf << EOF
-                <VirtualHost *:80>
-                ServerName $domain
-                ServerAlias www.$domain
-                DocumentRoot /var/www/vhosts/$domain
-                        <Directory /var/www/vhosts/$domain>
-                        AllowOverride All
-                        </Directory>
-                CustomLog logs/$domain-access_log common
-                ErrorLog logs/$domain-error_log
-                </VirtualHost>
+<VirtualHost *:80>
+	ServerName $domain
+	ServerAlias www.$domain
+	DocumentRoot /var/www/vhosts/$domain
+	<Directory /var/www/vhosts/$domain>
+		AllowOverride All
+	</Directory>
+	CustomLog logs/$domain-access_log common
+	ErrorLog logs/$domain-error_log
+</VirtualHost>
 EOF
                 mkdir -p /var/www/vhosts/$domain
                 service httpd restart > /dev/null 2>&1
         elif [[ $distro = "Ubuntu" ]]; then
                 cat > /etc/apache2/sites-available/$domain << EOF
-                <VirtualHost *:80>
-                ServerName $domain
-                ServerAlias www.$domain
-                DocumentRoot /var/www/vhosts/$domain
-                        <Directory /var/www/vhosts/$domain>
-                        AllowOverride All
-                        </Directory>
-                CustomLog /var/log/apache2/$domain-access_log common
-                ErrorLog /var/log/apache2/$domain-error_log
-                </VirtualHost>
+<VirtualHost *:80>
+	ServerName $domain
+	ServerAlias www.$domain
+	DocumentRoot /var/www/vhosts/$domain
+	<Directory /var/www/vhosts/$domain>
+		AllowOverride All
+	</Directory>
+	CustomLog /var/log/apache2/$domain-access_log common
+	ErrorLog /var/log/apache2/$domain-error_log
+</VirtualHost>
 EOF
                 mkdir -p /var/www/vhosts/$domain
                 a2ensite $domain > /dev/null 2>&1
