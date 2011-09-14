@@ -336,7 +336,7 @@ function mytuner() {
 
 # myusers - List MySQL users
 function myusers() {
-	mysql -B -N -e "SELECT DISTINCT CONCAT('SHOW GRANTS FOR ''',user,'''@''',host,''';') AS query FROM user" mysql | mysql
+	mysql -e "SELECT User,Host from mysql.user;" && mysql -B -N -e "SELECT user, host FROM user" mysql | sed 's,\t,"@",g;s,^,show grants for ",g;s,$,";,g;' | mysql | sed 's,$,;,g'
 }
 
 # rblcheck - Check to see if this host is on an Email Blacklist
