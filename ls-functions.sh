@@ -201,13 +201,13 @@ function cpchk() {
 # Check for Plesk
 if [ -f /usr/local/psa/version ]; then
         hmpsaversion=$( cat /usr/local/psa/version )
-        echo -e "$brightyellow\bPlesk Detected: $brightblue\b $hmpsaversion. $norm\n"
+        echo -e "${brightyellow}Plesk Detected: ${brightblue} ${hmpsaversion}. ${norm}\n"
 # Check for cPanel
 elif [ -d /usr/local/cpanel ]; then
-	hmcpanversion=$( cat /usr/local/cpanel/version )
-        echo -e "$brightyellow\bcPanel Detected: $brightblue\b $hmcpanversion. $norm\n"
+        hmcpanversion=$( cat /usr/local/cpanel/version )
+        echo -e "${brightyellow}cPanel Detected: ${brightblue} ${hmcpanversion}. ${norm}\n"
 else
-        echo -e "$brightred\bNo Control Panel Detected.$norm"
+        echo -e "${brightred}No Control Panel Detected.${norm}"
 fi
 }
 
