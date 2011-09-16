@@ -84,15 +84,9 @@ function ostype() {
 }
 
 
-# lshelp - Backwards compatibility for existing autologin scripts
-function lshelp {
-        lz help
-}
-
-# lslogin - Backwards compatibility for existing autologin scripts
-function lslogin {
-	lz login
-}
+# Aliases for backwards compatibility with existing autologin scripts
+alias lshelp='lz help'
+alias lslogin='lz login'
 
 # Run these functions when loaded
 ostype
