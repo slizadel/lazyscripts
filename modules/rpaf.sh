@@ -11,6 +11,11 @@ normal=$(tput sgr0)
 red=$(tput setaf 1)
 green=$(tput setaf 2)
 
+begin() {
+        OUTPUT="$*"
+        printf "${OUTPUT}"
+}
+
 pass() {
     COLUMNS=$(tput cols)
     echo $1 | awk -v width=${COLUMNS} '{ padding=(width-length($0)-8); printf "%"(padding)"s", "[  ";}'
@@ -74,7 +79,6 @@ install_deps() {
 get_distro
 echo "${bold}${distro}${normal} detected."
 install_deps
-clone_rpaf
 
 guess_lb
 read -p "Enter the load balancer's internal IP address: [${LB_GUESS}] " -e LBIP
