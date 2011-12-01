@@ -2,8 +2,6 @@
 ## mod_rpaf Lazy Script
 ## Author: David Wittman <david@wittman.com>
 
-SOURCE="http://c432251.r51.cf2.rackcdn.com/mod_rpaf-0.6-2.x86_64"
-BASENAME=$(basename ${SOURCE})
 # Set configuration path (relative to default Apache directory)
 CONFIGFILE="conf.d/mod_rpaf.conf"
 TEMPDIR="/tmp"
@@ -58,8 +56,25 @@ guess_lb() {
 	LB_GUESS=${LB_GUESS:-""}
 }
 
+install_deps() {
+        if [[ $distro == "Redhat/CentOS" ]]; then
+                local INSTALL="/usr/bin/yum -qy install"
+                local DEPS="httpd-devel git gcc"
+        elif [[ $distro == "Ubuntu" ]]; then
+                local INSTALL="/usr/bin/apt-get install -yq"
+                local DEPS="build-essential apache2-threaded-dev yada"
+        fi
+
+        begin "Installing dependencies..."
+        ${INSTALL} ${DEPS} > /dev/null || die "${OUTPUT}"
+        pass "${OUTPUT}"
+}
+
+
 get_distro
 echo "${bold}${distro}${normal} detected."
+install_deps
+clone_rpaf
 
 guess_lb
 read -p "Enter the load balancer's internal IP address: [${LB_GUESS}] " -e LBIP
@@ -67,18 +82,21 @@ read -p "Enter the load balancer's internal IP address: [${LB_GUESS}] " -e LBIP
 LBIP=${LBIP:-${LB_GUESS}}
 
 # Download and install mod_rpaf
-OUTPUT="Downloading ${BASENAME}..."
+OUTPUT="Cloning mod_rpaf..."
 printf "$OUTPUT"
-/usr/bin/wget --quiet -P ${TEMPDIR} ${SOURCE}${EXT} 
+git clone git://github.com/gnif/mod_rpaf.git /tmp/rpaf
 pass "$OUTPUT"
 
 # Install package
 OUTPUT="Installing package..."
 printf "$OUTPUT"
+cd /tmp/rpaf
 if [ "$distro" == "Ubuntu" ]; then
-	dpkg -i ${TEMPDIR}/${BASENAME}${EXT} > /dev/null 2>&1 || die "$OUTPUT"
+        dpkg-buildpackage -b
+        dpkg -i ../libapache2-mod-rpaf*.deb
 elif [ "$distro" == "Redhat/CentOS" ]; then
-	rpm -Uvh ${TEMPDIR}/${BASENAME}${EXT} > /dev/null 2>&1 || die "$OUTPUT"
+        make
+        make install
 fi
 pass "$OUTPUT"
 
@@ -86,17 +104,16 @@ pass "$OUTPUT"
 OUTPUT="Creating configuration files..."
 printf "$OUTPUT"
 cat > /etc/${APACHE}/${CONFIGFILE} <<EOF
-LoadModule rpaf_module /usr/lib64/httpd/modules/mod_rpaf-2.0.so
-
-<IfModule mod_rpaf-2.0.c>
-	RPAFenable On
-	RPAFsethostname On
-	# RPAFproxy_ips:	
+LoadModule        rpaf_module modules/mod_rpaf.so
+<IfModule mod_rpaf.c>
+	RPAF_Enable On
+	RPAF_SetHostName On
+	# RPAF_ProxyIPs:	
 	#	List of load balancer/proxy IP addresses (space delimited) 
-	RPAFproxy_ips 127.0.0.1 ${LBIP}
+	RPAF_ProxyIPs 127.0.0.1 ${LBIP}
 	# RPAFheader: 	
 	#	Header from which to pull client IP, commonly X-Forwarded-For
-	RPAFheader X-Cluster-Client-Ip
+	RPAF_Header X-Cluster-Client-Ip
 </IfModule>
 EOF
 pass "$OUTPUT"
