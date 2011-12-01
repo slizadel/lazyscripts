@@ -2,7 +2,7 @@
 
 <p>This is a set of bash shell functions to simplify and automate specific routine tasks, as well as some more specialized ones.</p>
 
-<p>Compatibility - RHEL 5, CentOS 5, Ubuntu 10.04, Ubuntu 10.10</p>
+<p>Compatibility - RHEL/CentOS 5+, Ubuntu 10.04+</p>
 
 <h3>How to use:</h3>
 <p> Run this bash function as root:</p>
@@ -17,7 +17,9 @@
 * lshighio  - Reports stats on processes in an uninterruptable sleep state. 
 * lsmylogin  - Auto login to MySQL 
 * lsmyengines  - List MySQL tables and their storage engine. 
-* lsmyusers  - List MySQL users and grants. 
+* lsmyusers  - List MySQL users and grants.
+* lsmycreate - Creates a MySQL DB and MySQL user
+* lsmycopy - Copies an existing database to a new database.
 * lsapcheck  - Verify apache max client settings and memory usage. 
 * lsapdocs  - Prints out Apache's DocumentRoots 
 * lsapproc  - Shows the memory used by each Apache process 
@@ -38,5 +40,6 @@
 * lsrpaf - Install mod_rpaf to set correct client IP behind a proxy.
 * lspma - Installs phpMyAdmin
 * lswhatis  - Output the script that would be run with a specific command.
+* lsnodejs - Installs Node.js and Node Package Manager
 
 <p>Enjoy!</p>

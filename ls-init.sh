@@ -20,19 +20,19 @@ function isFunction() {
 
 # lz - Main function
 function lz() {
+	local ARG="$1"
+	shift	# Push $1 off the arguments
         # Find files matching the parameter, limit 1
-        local FILE=$(/bin/ls ${LZS_MOD_PATH}${1}.* 2> /dev/null | head -1)
+        local FILE=$(/bin/ls ${LZS_MOD_PATH}${ARG}.* 2> /dev/null | head -1)
 
-        if [ $# -eq 1 ]; then
-                if ( isFunction ${1} ); then
-                        # Run the function
-                        ${1}
-                elif [ -r "${FILE}" ]; then
-                        # Execute the module
-                        chmod +x ${FILE} && ${FILE}
-		else
-			return 1
-		fi
+	if ( isFunction ${ARG} ); then
+		# Run the function
+		${ARG} "$*"
+	elif [ -r "${FILE}" ]; then
+		# Execute the module
+		chmod +x ${FILE} && ${FILE} "$*"
+	else
+		return 1
 	fi
 }
 
@@ -316,109 +316,6 @@ function lsrblcheck() {
 	curl checkrbl.com
 }
 
-function lsvhost() {
-	if [[ $1 != "" ]]; then
-		domain=$1
-	else
-		read -p "Please enter a domain (no www): " 	domain
-	fi
-	if [[ $distro = "Redhat/CentOS" ]]; then
-		cat > /etc/httpd/vhost.d/$domain.conf <<-EOF
-		<VirtualHost *:80>
-			ServerName $domain
-			ServerAlias www.$domain
-			DocumentRoot /var/www/vhosts/$domain
-			<Directory /var/www/vhosts/$domain>
-				AllowOverride All
-			</Directory>
-			CustomLog logs/$domain-access_log common
-			ErrorLog logs/$domain-error_log
-		</VirtualHost>
-
-
-		# <VirtualHost _default_:443>
-		# ServerName $domain
-		# DocumentRoot /var/www/vhosts/$domain
-		# <Directory /var/www/vhosts/$domain>
-		#	AllowOverride All
-		# </Directory>
-
-		# CustomLog /var/log/httpd/$domain-ssl-access.log combined
-		# ErrorLog /var/log/httpd/$domain-ssl-error.log
-
-		# # Possible values include: debug, info, notice, warn, error, crit,
-		# # alert, emerg.
-		# LogLevel warn
-
-		# SSLEngine on
-		# SSLCertificateFile    /etc/pki/tls/certs/localhost.crt
-		# SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
-
-		# <FilesMatch "\.(cgi|shtml|phtml|php)$">
-		# 	SSLOptions +StdEnvVars
-		# </FilesMatch>
-
-		# BrowserMatch "MSIE [2-6]" \\
-		#	nokeepalive ssl-unclean-shutdown \\
-		#	downgrade-1.0 force-response-1.0
-		# BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
-		# </VirtualHost>
-		EOF
-
-		mkdir -p /var/www/vhosts/$domain
-		service httpd restart > /dev/null 2>&1
-
-	elif [[ $distro = "Ubuntu" ]]; then
-		cat > /etc/apache2/sites-available/$domain <<-EOF
-		<VirtualHost *:80>
-			ServerName $domain
-			ServerAlias www.$domain
-			DocumentRoot /var/www/vhosts/$domain
-			<Directory /var/www/vhosts/$domain>
-				AllowOverride All
-			</Directory>
-			CustomLog /var/log/apache2/$domain-access_log common
-			ErrorLog /var/log/apache2/$domain-error_log
-		</VirtualHost>
-
-
-		# <VirtualHost _default_:443>
-		# ServerName $domain
-		# DocumentRoot /var/www/vhosts/$domain
-		# <Directory /var/www/vhosts/$domain>
-		#	AllowOverride All
-		# </Directory>
-
-		# CustomLog /var/log/httpd/$domain-ssl-access.log combined
-		# ErrorLog /var/log/httpd/$domain-ssl-error.log
-
-		# # Possible values include: debug, info, notice, warn, error, crit,
-		# # alert, emerg.
-		# LogLevel warn
-
-		# SSLEngine on
-		# SSLCertificateFile    /etc/pki/tls/certs/localhost.crt
-		# SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
-
-		# <FilesMatch "\.(cgi|shtml|phtml|php)$">
-		# 	SSLOptions +StdEnvVars
-		# </FilesMatch>
-
-		# BrowserMatch "MSIE [2-6]" \\
-		#	nokeepalive ssl-unclean-shutdown \\
-		#	downgrade-1.0 force-response-1.0
-		# BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
-		# </VirtualHost>
-		EOF
-
-		mkdir -p /var/www/vhosts/$domain
-		a2ensite $domain > /dev/null 2>&1
-		service apache2 restart	 > /dev/null 2>&1
-	else
-		echo "Unsupported OS"
-	fi
-}
-
 function lscrtchk() {
 	cd $LZS_PREFIX
 	read -p "Enter path to key [/path/to/server.key]: " key
@@ -448,6 +345,35 @@ function lsip() {
 	/sbin/ifconfig | awk '/^eth/ { printf("%s\t",$1) } /inet addr:/ { gsub(/.*:/,"",$2); if ($2 !~ /^127/) print $2; }'
 }
 
+# creates a new MySQL database, and sets a grant statement
+function lsmycreate() {
+	# Explaining the variables
+	#$1=HOST
+	#$2=DBNAME
+	#$3=DBUSER
+	#$4=DBPASS
+	
+	if [ $# -ne 4 ]; then
+		echo "Usage: lsmycreate (host) (database name) (MySQL username) (MySQL password)"
+		return 1
+	fi
+	
+	CREATE_DB="CREATE DATABASE IF NOT EXISTS ${2};"
+	CREATE_DB_USER="GRANT ALL PRIVILEGES ON ${2}.* TO '${3}'@'${1}' IDENTIFIED BY '${4}';"
+	SQL="${CREATE_DB}${CREATE_DB_USER}"
+	mysql -e "$SQL"
+	echo "${2} created successfully."
+}
+
+#Copies an existing database to a new database
+function lsmycopy() {
+	if [ $# -ne 2 ]; then
+		echo "Usage: lsmycopy OLDDBNAME NEWDBNAME"
+		return 1
+	fi
+	mysql -e "CREATE DATABASE IF NOT EXISTS ${2};" && mysqldump -QR ${1} | mysql ${2}
+}
+
 function lshelp() {
 	echo -e "---------------------------------------------------------------------------------------------"
 	echo -e "    lshelp\t\tThis help message."
@@ -461,6 +387,8 @@ function lshelp() {
 	echo -e "    lsmylogin\t\tAuto login to MySQL"
 	echo -e "    lsmyengines\t\tList MySQL tables and their storage engine."
 	echo -e "    lsmyusers\t\tList MySQL users and grants."
+	echo -e "    lsmycreate\t\tCreates MySQL DB and MySQL user"
+	echo -e "    lsmycopy\t\tCopies an existing database to a new database."
 	echo -e "    lsparsar\t\tPretty sar output"
 	echo -e "    lsapcheck\t\tVerify apache max client settings and memory usage."
 	echo -e "    lsapdocs\t\tPrints out Apache's DocumentRoots"
@@ -488,6 +416,7 @@ function lshelp() {
 function lswhatis() { export -f $1; export -pf; export -fn $1; }
 
 function _aliases() {
+	alias lsvhost="lz vhost"
 	alias lsapcheck="lz apachebuddy"
 	alias lsdrupal="lz drupal"
 	#alias lshistsetup="lz hist"
